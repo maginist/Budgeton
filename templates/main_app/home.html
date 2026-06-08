@@ -1,0 +1,229 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}{{ title }} — Budgeton{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+{{ home_chart_categories|json_script:"home-chart-categories" }}
+
+<div class="bg-white rounded-4 shadow-sm p-3 p-md-4">
+    <div class="text-center mb-3">
+        <span class="badge rounded-pill bg-primary-subtle text-primary fw-semibold mb-2">Mois sélectionné</span>
+        <h1 class="h4 fw-bold mb-1">{{ dashboard_month|date:"F Y"|capfirst }}</h1>
+        <p class="small mb-0 text-muted">Entrées et dépenses par catégorie</p>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-4">
+        <a class="btn btn-outline-secondary btn-sm rounded-circle px-3" href="?year={{ prev_year }}&month={{ prev_month }}" aria-label="Mois précédent">
+            ←
+        </a>
+        <div class="text-center px-2">
+            <div class="small text-muted">Mois</div>
+            <div class="fw-semibold">{{ dashboard_month|date:"m/Y" }}</div>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm rounded-circle px-3" href="?year={{ next_year }}&month={{ next_month }}" aria-label="Mois suivant">
+            →
+        </a>
+
+        <form method="get" class="d-flex align-items-center gap-2 ms-lg-2">
+            <input type="hidden" name="month" value="{{ selected_month }}">
+            <label class="small text-muted mb-0" for="id_year_select">Année</label>
+            <select id="id_year_select" name="year" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                {% for y in year_choices %}
+                    <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <a href="{% url 'main_app:balance' %}" class="text-decoration-none d-block h-100">
+                    <div class="p-3 rounded-3 bg-white border h-100 shadow-sm" style="border-left: 6px solid #43e97b; min-height: 110px;">
+                        <div class="small text-uppercase fw-semibold text-muted">Reste estimé</div>
+                        <div class="fs-4 fw-bold mt-1">{{ estimated_remaining|floatformat:2 }} €</div>
+                        <div class="small text-muted">Revenus − dépenses − épargne (cliquer pour le détail)</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'main_app:expense_hub' %}" class="text-decoration-none d-block h-100">
+                    <div class="p-3 rounded-3 bg-white border h-100 shadow-sm" style="border-left: 6px solid #0d6efd; min-height: 110px;">
+                        <div class="small text-uppercase fw-semibold text-muted">Dépenses</div>
+                        <div class="fs-4 fw-bold mt-1">{{ total_expense|floatformat:2 }} €</div>
+                        <div class="small text-muted">Voir et ajouter des dépenses</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'main_app:savings_hub' %}" class="text-decoration-none d-block h-100">
+                    <div class="p-3 rounded-3 bg-white border h-100 shadow-sm" style="border-left: 6px solid #6f42c1; min-height: 110px;">
+                        <div class="small text-uppercase fw-semibold text-muted">Épargne</div>
+                        <div class="fs-4 fw-bold mt-1">{{ total_savings|floatformat:2 }} €</div>
+                        <div class="small text-muted">Comptes / groupes et mouvements</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="card shadow border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <h2 class="h5 mb-0">Entrées & dépenses par catégorie</h2>
+                    <span class="small text-muted">Mois : {{ dashboard_month|date:"F Y"|capfirst }}</span>
+                </div>
+
+                <div class="position-relative" style="height: 290px;">
+                    <canvas id="chart-home-income-expense" aria-label="Entrées et dépenses par catégorie"></canvas>
+                </div>
+                <p id="chart-home-empty" class="small text-muted text-center d-none mb-0">Aucune entrée ou dépense enregistrée pour ce mois.</p>
+            </div>
+        </div>
+
+        <div class="card shadow border-0">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h2 class="h5 mb-0">Dépenses du mois (5 dernières)</h2>
+                    <a href="{% url 'main_app:expense_create' %}" class="btn btn-sm btn-primary">Ajouter</a>
+                </div>
+                {% if recent_expenses %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Libellé</th>
+                                    <th>Catégorie</th>
+                                    <th>Récurrence</th>
+                                    <th class="text-end">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in recent_expenses %}
+                                    <tr>
+                                        <td>{{ e.date|date:"d/m/Y" }}</td>
+                                        <td>{{ e.name }}</td>
+                                        <td>
+                                            <span class="badge rounded-pill" style="background-color: {{ e.category.color }}; color: #fff;">{{ e.category.name }}</span>
+                                        </td>
+                                        <td>{{ e.frequency }}</td>
+                                        <td class="text-end fw-semibold">{{ e.amount|floatformat:2 }} €</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Aucune dépense ce mois-ci. Utilise le bouton « + Dépense » dans la barre du haut.</p>
+                {% endif %}
+            </div>
+        </div>
+ </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    function readData(id) {
+        var el = document.getElementById(id);
+        if (!el) return [];
+        try {
+            return JSON.parse(el.textContent);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function hexToRgba(hex, alpha) {
+        if (!hex) return 'rgba(108,117,125,' + alpha + ')';
+        var h = hex.replace('#', '').trim();
+        if (h.length === 3) {
+            h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+        }
+        var bigint = parseInt(h, 16);
+        var r = (bigint >> 16) & 255;
+        var g = (bigint >> 8) & 255;
+        var b = bigint & 255;
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+    }
+
+    function doughnutChart(canvasId, emptyId, categoriesId) {
+        var canvas = document.getElementById(canvasId);
+        var emptyEl = document.getElementById(emptyId);
+        if (!canvas) return;
+
+        var cats = readData(categoriesId);
+        if (!cats.length) {
+            canvas.classList.add('d-none');
+            if (emptyEl) emptyEl.classList.remove('d-none');
+            return;
+        }
+
+        var incomeData = cats.map(function (d) { return d.income || 0; });
+        var expenseData = cats.map(function (d) { return d.expense || 0; });
+        var labels = cats.map(function (d) { return d.label; });
+        var colors = cats.map(function (d) { return d.color || '#6c757d'; });
+
+        var total = incomeData.reduce(function (a, b) { return a + b; }, 0) + expenseData.reduce(function (a, b) { return a + b; }, 0);
+        if (!total) {
+            canvas.classList.add('d-none');
+            if (emptyEl) emptyEl.classList.remove('d-none');
+            return;
+        }
+        if (emptyEl) emptyEl.classList.add('d-none');
+
+        var ctx = canvas.getContext('2d');
+        var incomeColors = colors.map(function (c) { return hexToRgba(c, 0.45); });
+        var expenseColors = colors.map(function (c) { return hexToRgba(c, 0.88); });
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Revenus',
+                        data: incomeData,
+                        backgroundColor: incomeColors,
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        radius: '75%',
+                        cutout: '45%'
+                    },
+                    {
+                        label: 'Dépenses',
+                        data: expenseData,
+                        backgroundColor: expenseColors,
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        radius: '100%',
+                        cutout: '62%'
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                var val = context.raw || 0;
+                                return context.dataset.label + ': ' + Number(val).toFixed(2) + ' €';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    doughnutChart('chart-home-income-expense', 'chart-home-empty', 'home-chart-categories');
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Catégories — Budgeton{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+{{ expense_chart_data|json_script:"expense-chart-data-cat" }}
+{{ income_chart_data|json_script:"income-chart-data-cat" }}
+
+<div class="py-3 py-md-4 rounded-4 overflow-hidden" style="background: radial-gradient(circle at top left, #a18cd1, #c2e9fb 40%, #fbc2eb);">
+    <div class="px-3 px-md-4">
+        <div class="text-center text-white mb-4">
+            <span class="badge rounded-pill bg-light text-primary fw-semibold mb-2">Catégories</span>
+            <h1 class="h3 fw-bold mb-1">{{ dashboard_month|date:"F Y"|capfirst }}</h1>
+            <p class="small mb-0 opacity-90">Répartition mensuelle par catégorie</p>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-3">
+            <a class="btn btn-outline-light btn-sm" href="?year={{ prev_year }}&month={{ prev_month }}">
+                ← Mois précédent
+            </a>
+            <a class="btn btn-outline-light btn-sm" href="?year={{ next_year }}&month={{ next_month }}">
+                Mois suivant →
+            </a>
+        </div>
+
+        <div class="d-flex justify-content-center mb-4">
+            <form method="get" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="month" value="{{ selected_month }}">
+                <label class="small text-white-50 mb-0" for="id_year_select_cat">Année</label>
+                <select id="id_year_select_cat" name="year" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    {% for y in year_choices %}
+                        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h2 class="h5 mb-0 text-white">Récapitulatif</h2>
+            <a href="{% url 'main_app:category_create' %}" class="btn btn-primary btn-sm">
+                + Ajouter une catégorie
+            </a>
+        </div>
+
+        <div class="card shadow border-0 mb-4">
+            <div class="card-body p-4">
+                <h3 class="h6 text-muted mb-3">Graphiques par catégorie</h3>
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <h4 class="h6 text-muted mb-3">Dépenses</h4>
+                        <div class="position-relative" style="max-width: 340px; margin: 0 auto; height: 260px;">
+                            <canvas id="chart-expenses-cat" aria-label="Dépenses par catégorie"></canvas>
+                        </div>
+                        <p id="chart-expenses-cat-empty" class="small text-muted text-center d-none mb-0">Aucune dépense ce mois-ci.</p>
+                    </div>
+                    <div class="col-lg-6">
+                        <h4 class="h6 text-muted mb-3">Revenus</h4>
+                        <div class="position-relative" style="max-width: 340px; margin: 0 auto; height: 260px;">
+                            <canvas id="chart-incomes-cat" aria-label="Revenus par catégorie"></canvas>
+                        </div>
+                        <p id="chart-incomes-cat-empty" class="small text-muted text-center d-none mb-0">Aucune entrée enregistrée ce mois-ci.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow border-0">
+            <div class="card-body p-4">
+                {% if categories_rows %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-4 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Catégorie</th>
+                                    <th class="text-end">Dépenses</th>
+                                    <th class="text-end">Revenus</th>
+                                    <th class="text-end">Épargne</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in categories_rows %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge rounded-pill" style="background-color: {{ c.color }}; color: #fff;">{{ c.name }}</span>
+                                        </td>
+                                        <td class="text-end fw-semibold">{{ c.expenses_total|floatformat:2 }} €</td>
+                                        <td class="text-end fw-semibold">{{ c.incomes_total|floatformat:2 }} €</td>
+                                        <td class="text-end fw-semibold">{{ c.savings_total|floatformat:2 }} €</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row g-3">
+                        {% for c in categories_rows %}
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm mb-3">
+                                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge rounded-pill" style="background-color: {{ c.color }}; color: #fff;">{{ c.name }}</span>
+                                            <span class="small text-muted">Ce mois</span>
+                                        </div>
+                                        <div class="small">
+                                            <span class="me-2">Dépenses: <strong>{{ c.expenses_total|floatformat:2 }} €</strong></span>
+                                            <span>Revenus: <strong>{{ c.incomes_total|floatformat:2 }} €</strong></span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-4">
+                                            <div class="col-lg-4">
+                                                <h5 class="h6 text-muted mb-2">Dernières dépenses</h5>
+                                                {% if c.expense_samples %}
+                                                    <ul class="list-group list-group-flush">
+                                                        {% for e in c.expense_samples %}
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <div class="fw-medium">{{ e.name }}</div>
+                                                                    <div class="small text-muted">{{ e.date|date:"d/m/Y" }}</div>
+                                                                </div>
+                                                                <span class="fw-semibold">-{{ e.amount|floatformat:2 }} €</span>
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    <p class="text-muted mb-0 small">—</p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <h5 class="h6 text-muted mb-2">Derniers revenus</h5>
+                                                {% if c.income_samples %}
+                                                    <ul class="list-group list-group-flush">
+                                                        {% for i in c.income_samples %}
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <div class="fw-medium">{{ i.name }}</div>
+                                                                    <div class="small text-muted">{{ i.date|date:"d/m/Y" }}</div>
+                                                                </div>
+                                                                <span class="fw-semibold">+{{ i.amount|floatformat:2 }} €</span>
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    <p class="text-muted mb-0 small">—</p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <h5 class="h6 text-muted mb-2">Dernières épargnes</h5>
+                                                {% if c.savings_samples %}
+                                                    <ul class="list-group list-group-flush">
+                                                        {% for s in c.savings_samples %}
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <div class="fw-medium">{{ s.name }}</div>
+                                                                    <div class="small text-muted">{{ s.date|date:"d/m/Y" }}</div>
+                                                                </div>
+                                                                <span class="fw-semibold">{{ s.amount|floatformat:2 }} €</span>
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    <p class="text-muted mb-0 small">—</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Aucune transaction sur ce mois-ci pour tes catégories.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    function readData(id) {
+        var el = document.getElementById(id);
+        if (!el) return [];
+        try {
+            return JSON.parse(el.textContent);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function doughnutChart(canvasId, data, emptyId) {
+        var canvas = document.getElementById(canvasId);
+        var emptyEl = document.getElementById(emptyId);
+        if (!canvas) return;
+        if (!data.length) {
+            canvas.classList.add('d-none');
+            if (emptyEl) emptyEl.classList.remove('d-none');
+            return;
+        }
+        var ctx = canvas.getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.map(function (d) { return d.label; }),
+                datasets: [{
+                    data: data.map(function (d) { return d.amount; }),
+                    backgroundColor: data.map(function (d) { return d.color; }),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    doughnutChart('chart-expenses-cat', readData('expense-chart-data-cat'), 'chart-expenses-cat-empty');
+    doughnutChart('chart-incomes-cat', readData('income-chart-data-cat'), 'chart-incomes-cat-empty');
+})();
+</script>
+{% endblock %}
+

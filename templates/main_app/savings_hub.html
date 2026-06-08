@@ -1,0 +1,75 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Épargne — Budgeton{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Épargne</h1>
+                <p class="text-muted mb-0">Versé ce mois-ci : <strong>{{ month_total|floatformat:2 }} €</strong></p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'main_app:savings_account_create' %}" class="btn btn-outline-primary">+ Compte / groupe</a>
+                <a href="{% url 'main_app:savings_create' %}" class="btn btn-primary">+ Mouvement</a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Comptes et groupes</div>
+            <div class="card-body">
+                {% if accounts %}
+                    <ul class="list-group list-group-flush">
+                        {% for a in accounts %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="fw-medium">{{ a.name }}</span>
+                                <span class="small text-muted">Répartition des mouvements</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-3">Tu n’as pas encore créé de compte ou groupe d’épargne.</p>
+                    <a href="{% url 'main_app:savings_account_create' %}" class="btn btn-sm btn-outline-primary">Créer un premier compte</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Derniers mouvements</div>
+            <div class="card-body p-0">
+                {% if recent_savings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Libellé</th>
+                                    <th>Compte</th>
+                                    <th>Catégorie</th>
+                                    <th class="text-end">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in recent_savings %}
+                                    <tr>
+                                        <td>{{ s.date|date:"d/m/Y" }}</td>
+                                        <td>{{ s.name }}</td>
+                                        <td>{% if s.account %}{{ s.account.name }}{% else %}—{% endif %}</td>
+                                        <td>
+                                            <span class="badge rounded-pill" style="background-color: {{ s.category.color }}; color: #fff;">{{ s.category.name }}</span>
+                                        </td>
+                                        <td class="text-end fw-semibold">{{ s.amount|floatformat:2 }} €</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="p-4 mb-0 text-muted">Aucun mouvement d’épargne. Ajoute-en un pour commencer.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

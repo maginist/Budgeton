@@ -1,0 +1,62 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Nouveau revenu — Budgeton{% endblock %}
+
+{% block content %}
+<div class="py-4 py-md-5" style="background: radial-gradient(circle at top left, #43e97b, #38f9d7 40%, #a8edea); border-radius: 1.5rem;">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="text-center text-white mb-4 px-3">
+                <span class="badge rounded-pill bg-light text-success fw-semibold mb-3">Nouveau revenu</span>
+                <h1 class="h3 fw-bold mb-2">Enregistrer une entrée d’argent</h1>
+                <p class="mb-0 opacity-90">Salaire, primes, remboursements…</p>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" class="card shadow-lg border-0">
+                <div class="card-body p-4 p-md-5">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label">{{ form.amount.label }}</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}<div class="invalid-feedback d-block">{{ form.amount.errors|striptags }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.date.id_for_label }}" class="form-label">{{ form.date.label }}</label>
+                            {{ form.date }}
+                            {% if form.date.errors %}<div class="invalid-feedback d-block">{{ form.date.errors|striptags }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label for="{{ form.frequency.id_for_label }}" class="form-label">{{ form.frequency.label }}</label>
+                            {{ form.frequency }}
+                            {% if form.frequency.errors %}<div class="invalid-feedback d-block">{{ form.frequency.errors|striptags }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}<div class="invalid-feedback d-block">{{ form.category.errors|striptags }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-4 mt-4 border-top">
+                        <a href="{% url 'main_app:balance' %}" class="btn btn-outline-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-success">Enregistrer</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

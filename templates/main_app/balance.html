@@ -1,0 +1,100 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Solde et flux — Budgeton{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <h1 class="h3 fw-bold mb-1">Solde estimé</h1>
+        <p class="text-muted mb-4">Vue du mois en cours : revenus, dépenses, épargne et reste.</p>
+
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="small text-muted text-uppercase">Reste estimé</div>
+                        <div class="fs-4 fw-bold text-success">{{ estimated_remaining|floatformat:2 }} €</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="small text-muted text-uppercase">Revenus</div>
+                        <div class="fs-5 fw-bold">{{ total_income|floatformat:2 }} €</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="small text-muted text-uppercase">Dépenses</div>
+                        <div class="fs-5 fw-bold">{{ total_expense|floatformat:2 }} €</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="small text-muted text-uppercase">Épargne</div>
+                        <div class="fs-5 fw-bold">{{ total_savings|floatformat:2 }} €</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <a href="{% url 'main_app:income_create' %}" class="btn btn-primary">+ Ajouter un revenu</a>
+            <a href="{% url 'main_app:expense_create' %}" class="btn btn-outline-primary">+ Ajouter une dépense</a>
+            <a href="{% url 'main_app:savings_create' %}" class="btn btn-outline-secondary">+ Mouvement d'épargne</a>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-semibold">Derniers revenus</div>
+                    <div class="card-body p-0">
+                        {% if recent_incomes %}
+                            <ul class="list-group list-group-flush">
+                                {% for i in recent_incomes %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-medium">{{ i.name }}</div>
+                                            <div class="small text-muted">{{ i.date|date:"d/m/Y" }} · {{ i.category.name }}</div>
+                                        </div>
+                                        <span class="text-success fw-semibold">+{{ i.amount|floatformat:2 }} €</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="p-3 mb-0 text-muted small">Aucun revenu récent.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-semibold">Dernières dépenses</div>
+                    <div class="card-body p-0">
+                        {% if recent_expenses %}
+                            <ul class="list-group list-group-flush">
+                                {% for e in recent_expenses %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-medium">{{ e.name }}</div>
+                                            <div class="small text-muted">{{ e.date|date:"d/m/Y" }} · {{ e.category.name }}</div>
+                                        </div>
+                                        <span class="fw-semibold">-{{ e.amount|floatformat:2 }} €</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="p-3 mb-0 text-muted small">Aucune dépense récente.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
