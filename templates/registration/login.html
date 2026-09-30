@@ -5,11 +5,15 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-5">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0">
             <div class="card-body p-4 p-md-5">
-                <h1 class="h4 fw-bold mb-3">Connexion</h1>
+                <div class="text-center mb-4">
+                    <span class="badge fw-semibold mb-2" style="background: #f6e4d4; color: #c45c3e;">Bienvenue</span>
+                    <h1 class="h4 fw-bold mb-1">Connexion</h1>
+                    <p class="small mb-0" style="color: #8a6e5d;">Retrouve ton budget en un instant</p>
+                </div>
                 {% if form.errors %}
-                    <div class="alert alert-danger">Identifiant ou mot de passe incorrect.</div>
+                    <div class="alert alert-danger rounded-4">Identifiant ou mot de passe incorrect.</div>
                 {% endif %}
                 <form method="post" action="{% url 'login' %}">
                     {% csrf_token %}
@@ -22,7 +26,7 @@
                         <input type="password" name="password" id="id_password" class="form-control" required autocomplete="current-password">
                     </div>
                     <input type="hidden" name="next" value="{{ next }}">
-                    <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+                    <button type="submit" class="btn btn-primary w-100 py-2">Se connecter</button>
                 </form>
             </div>
         </div>

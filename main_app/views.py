@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Max, Min, Sum
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import CreateView, ListView, TemplateView
+from django.views.generic import CreateView, DeleteView, ListView, TemplateView
 
 from main_app.forms import (
     CategoryForm,
@@ -140,6 +140,11 @@ class HomePageView(LoginRequiredMixin, TemplateView):
         context['estimated_remaining'] = estimated_remaining
         context['recent_expenses'] = (
             Expense.objects.filter(user=user, date__gte=start, date__lt=end)
+            .select_related('category')
+            .order_by('-date', '-id')[:5]
+        )
+        context['recent_incomes'] = (
+            Income.objects.filter(user=user, date__gte=start, date__lt=end)
             .select_related('category')
             .order_by('-date', '-id')[:5]
         )
@@ -282,6 +287,31 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
+
+
+class OwnedDeleteMixin:
+    def get_queryset(self):
+        return self.model.objects.filter(user=self.request.user)
+
+    def get_success_url(self):
+        next_url = self.request.POST.get('next') or self.request.GET.get('next')
+        if next_url and next_url.startswith('/') and not next_url.startswith('//'):
+            return next_url
+        return str(self.success_url)
+
+
+class ExpenseDeleteView(LoginRequiredMixin, OwnedDeleteMixin, DeleteView):
+    model = Expense
+    template_name = 'main_app/confirm_delete.html'
+    success_url = reverse_lazy('main_app:home')
+    extra_context = {'object_kind': 'cette dépense'}
+
+
+class IncomeDeleteView(LoginRequiredMixin, OwnedDeleteMixin, DeleteView):
+    model = Income
+    template_name = 'main_app/confirm_delete.html'
+    success_url = reverse_lazy('main_app:home')
+    extra_context = {'object_kind': 'cette entrée'}
 
 
 class SavingsCreateView(LoginRequiredMixin, CreateView):

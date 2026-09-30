@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -11,13 +12,17 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
         crossorigin="anonymous"
     >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-light d-flex flex-column min-vh-100">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="{% url 'main_app:home' %}">
+<body class="d-flex flex-column min-vh-100">
+    <nav class="navbar navbar-expand-lg site-nav">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="{% url 'main_app:home' %}">
                 Budgeton
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Navigation">
@@ -39,7 +44,7 @@
                     </li>
                 </ul>
                 <div class="d-flex flex-wrap align-items-center gap-2 ms-lg-2">
-                    <a href="{% url 'main_app:expense_create' %}" class="btn btn-primary btn-sm fw-semibold">
+                    <a href="{% url 'main_app:expense_create' %}" class="btn btn-primary btn-sm">
                         + Dépense
                     </a>
                     {% if user.is_authenticated %}
@@ -60,14 +65,10 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-white border-top py-3 mt-4">
+    <footer class="py-4 mt-2">
         <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
-            <div class="text-muted small mb-2 mb-md-0">
-                &copy; 2026 Budgeton — Django
-            </div>
-            <div class="small">
-                <a href="#" class="text-decoration-none text-muted me-3">Confidentialité</a>
-                <a href="#" class="text-decoration-none text-muted">Conditions d'utilisation</a>
+            <div class="small mb-2 mb-md-0" style="color: #8a6e5d;">
+                &copy; 2026 Budgeton — gère ton argent tout en douceur
             </div>
         </div>
     </footer>

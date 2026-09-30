@@ -3,13 +3,13 @@
 {% block title %}Mouvement d'épargne — Budgeton{% endblock %}
 
 {% block content %}
-<div class="py-4 py-md-5" style="background: radial-gradient(circle at top left, #fbc2eb, #a6c1ee 40%, #d299c2); border-radius: 1.5rem;">
+<div class="form-hero">
     <div class="row justify-content-center">
         <div class="col-lg-7 col-md-9">
-            <div class="text-center text-white mb-4 px-3">
-                <span class="badge rounded-pill bg-light text-primary fw-semibold mb-3">Épargne</span>
+            <div class="text-center hero-copy mb-4 px-3">
+                <span class="badge fw-semibold mb-3" style="background: #fff; color: #d4a017;">Épargne</span>
                 <h1 class="h3 fw-bold mb-2">Nouveau mouvement</h1>
-                <p class="mb-0 opacity-90">Versement vers un compte ou groupe (optionnel).</p>
+                <p class="mb-0" style="color: #8a6e5d;">Versement vers un compte ou groupe (optionnel).</p>
             </div>
 
             {% if form.non_field_errors %}

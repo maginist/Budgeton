@@ -1,0 +1,5 @@
+<form method="post" action="{{ action_url }}" class="d-inline" onsubmit="return confirm('{{ confirm_message|escapejs }}');">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button type="submit" class="btn btn-sm btn-outline-danger">{{ button_label|default:"Supprimer" }}</button>
+</form>

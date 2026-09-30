@@ -13,7 +13,9 @@ urlpatterns = [
     path('epargne/', views.SavingsHubView.as_view(), name='savings_hub'),
     path('compte/', views.AccountPageView.as_view(), name='account'),
     path('depense/nouvelle/', views.ExpenseCreateView.as_view(), name='expense_create'),
+    path('depense/<int:pk>/supprimer/', views.ExpenseDeleteView.as_view(), name='expense_delete'),
     path('revenu/nouveau/', views.IncomeCreateView.as_view(), name='income_create'),
+    path('revenu/<int:pk>/supprimer/', views.IncomeDeleteView.as_view(), name='income_delete'),
     path('epargne/mouvement/nouveau/', views.SavingsCreateView.as_view(), name='savings_create'),
     path('epargne/compte/nouveau/', views.SavingsAccountCreateView.as_view(), name='savings_account_create'),
 ]
