@@ -57,12 +57,17 @@
                         {% if recent_incomes %}
                             <ul class="list-group list-group-flush">
                                 {% for i in recent_incomes %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center gap-3">
                                         <div>
                                             <div class="fw-medium">{{ i.name }}</div>
                                             <div class="small text-muted">{{ i.date|date:"d/m/Y" }} · {{ i.category.name }}</div>
                                         </div>
-                                        <span class="text-success fw-semibold">+{{ i.amount|floatformat:2 }} €</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="text-success fw-semibold">+{{ i.amount|floatformat:2 }} €</span>
+                                            {% url 'main_app:income_update' i.pk as income_update_url %}
+                                            {% url 'main_app:income_delete' i.pk as income_delete_url %}
+                                            {% include "main_app/_delete_button.html" with action_url=income_delete_url edit_url=income_update_url confirm_message="Supprimer cette entrée ?" %}
+                                        </div>
                                     </li>
                                 {% endfor %}
                             </ul>
@@ -79,12 +84,17 @@
                         {% if recent_expenses %}
                             <ul class="list-group list-group-flush">
                                 {% for e in recent_expenses %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center gap-3">
                                         <div>
                                             <div class="fw-medium">{{ e.name }}</div>
                                             <div class="small text-muted">{{ e.date|date:"d/m/Y" }} · {{ e.category.name }}</div>
                                         </div>
-                                        <span class="fw-semibold">-{{ e.amount|floatformat:2 }} €</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-semibold">-{{ e.amount|floatformat:2 }} €</span>
+                                            {% url 'main_app:expense_update' e.pk as expense_update_url %}
+                                            {% url 'main_app:expense_delete' e.pk as expense_delete_url %}
+                                            {% include "main_app/_delete_button.html" with action_url=expense_delete_url edit_url=expense_update_url confirm_message="Supprimer cette dépense ?" %}
+                                        </div>
                                     </li>
                                 {% endfor %}
                             </ul>

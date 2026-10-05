@@ -1,5 +1,12 @@
-<form method="post" action="{{ action_url }}" class="d-inline" onsubmit="return confirm('{{ confirm_message|escapejs }}');">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-    <button type="submit" class="btn btn-sm btn-outline-danger">{{ button_label|default:"Supprimer" }}</button>
-</form>
+<div class="d-flex justify-content-end align-items-center gap-1 flex-wrap">
+    {% if edit_url %}
+        <a href="{{ edit_url }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+    {% endif %}
+    {% if action_url %}
+        <form method="post" action="{{ action_url }}" class="d-inline" onsubmit="return confirm('{{ confirm_message|escapejs }}');">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-sm btn-outline-danger">{{ button_label|default:"Supprimer" }}</button>
+        </form>
+    {% endif %}
+</div>

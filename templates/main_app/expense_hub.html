@@ -25,6 +25,7 @@
                                     <th>Libellé</th>
                                     <th>Catégorie</th>
                                     <th class="text-end">Montant</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -36,6 +37,11 @@
                                             <span class="badge rounded-pill" style="background-color: {{ e.category.color }}; color: #fff;">{{ e.category.name }}</span>
                                         </td>
                                         <td class="text-end fw-semibold">{{ e.amount|floatformat:2 }} €</td>
+                                        <td class="text-end">
+                                            {% url 'main_app:expense_update' e.pk as expense_update_url %}
+                                            {% url 'main_app:expense_delete' e.pk as expense_delete_url %}
+                                            {% include "main_app/_delete_button.html" with action_url=expense_delete_url edit_url=expense_update_url confirm_message="Supprimer cette dépense ?" %}
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -53,12 +59,17 @@
                 {% if recent_all %}
                     <ul class="list-group list-group-flush">
                         {% for e in recent_all %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <li class="list-group-item d-flex justify-content-between align-items-center gap-3">
                                 <div>
                                     <div class="fw-medium">{{ e.name }}</div>
                                     <div class="small text-muted">{{ e.date|date:"d/m/Y" }} · {{ e.category.name }}</div>
                                 </div>
-                                <span class="fw-semibold">{{ e.amount|floatformat:2 }} €</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-semibold">{{ e.amount|floatformat:2 }} €</span>
+                                    {% url 'main_app:expense_update' e.pk as expense_update_url %}
+                                    {% url 'main_app:expense_delete' e.pk as expense_delete_url %}
+                                    {% include "main_app/_delete_button.html" with action_url=expense_delete_url edit_url=expense_update_url confirm_message="Supprimer cette dépense ?" %}
+                                </div>
                             </li>
                         {% endfor %}
                     </ul>

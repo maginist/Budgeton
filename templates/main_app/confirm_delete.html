@@ -10,7 +10,12 @@
                 <h1 class="h4 fw-bold mb-3">Supprimer {{ object_kind }} ?</h1>
                 <p class="mb-1 fw-semibold">{{ object.name }}</p>
                 <p class="mb-4" style="color: #8a6e5d;">
-                    {{ object.amount|floatformat:2 }} € · {{ object.date|date:"d/m/Y" }}
+                    {{ object.amount|floatformat:2 }} €
+                    {% if object.date %}
+                        · {{ object.date|date:"d/m/Y" }}
+                    {% elif object.month %}
+                        · {{ object.month }}/{{ object.year }}
+                    {% endif %}
                 </p>
                 <form method="post">
                     {% csrf_token %}

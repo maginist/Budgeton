@@ -7,13 +7,14 @@
 {% endblock %}
 
 {% block content %}
-{{ home_chart_categories|json_script:"home-chart-categories" }}
+{{ home_chart_overview|json_script:"home-chart-overview" }}
+{{ home_chart_planned|json_script:"home-chart-planned" }}
 
 <div class="warm-panel p-3 p-md-4">
     <div class="text-center mb-3">
         <span class="badge fw-semibold mb-2" style="background: #f6e4d4; color: #c45c3e;">Mois sélectionné</span>
         <h1 class="h4 fw-bold mb-1">{{ dashboard_month|date:"F Y"|capfirst }}</h1>
-        <p class="small mb-0" style="color: #8a6e5d;">Entrées et dépenses par catégorie</p>
+        <p class="small mb-0" style="color: #8a6e5d;">Salaire, dépenses et virements du mois</p>
     </div>
 
     <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-4">
@@ -76,17 +77,34 @@
             </div>
         </div>
 
-        <div class="card shadow border-0 mb-4">
-            <div class="card-body p-4">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                    <h2 class="h5 mb-0">Entrées & dépenses par catégorie</h2>
-                    <span class="small text-muted">Mois : {{ dashboard_month|date:"F Y"|capfirst }}</span>
+        <div class="row g-3 mb-4">
+            <div class="col-lg-6">
+                <div class="card shadow border-0 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <h2 class="h5 mb-0">Vue d’ensemble</h2>
+                            <span class="small text-muted">{{ dashboard_month|date:"F Y"|capfirst }}</span>
+                        </div>
+                        <div class="position-relative" style="height: 280px;">
+                            <canvas id="chart-home-overview" aria-label="Salaire, dépenses et virements du mois"></canvas>
+                        </div>
+                        <p id="chart-home-empty" class="small text-muted text-center d-none mb-0">Aucun salaire, dépense ou virement enregistré pour ce mois.</p>
+                    </div>
                 </div>
-
-                <div class="position-relative" style="height: 290px;">
-                    <canvas id="chart-home-income-expense" aria-label="Entrées et dépenses par catégorie"></canvas>
+            </div>
+            <div class="col-lg-6">
+                <div class="card shadow border-0 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <h2 class="h5 mb-0">Prévisions de dépenses</h2>
+                            <a href="{% url 'main_app:planned_expenses' %}?year={{ selected_year }}&month={{ selected_month }}" class="small">Gérer</a>
+                        </div>
+                        <div class="position-relative" style="height: 280px;">
+                            <canvas id="chart-home-planned" aria-label="Prévisions de dépenses par catégorie"></canvas>
+                        </div>
+                        <p id="chart-home-planned-empty" class="small text-muted text-center d-none mb-0">Aucune prévision pour ce mois.</p>
+                    </div>
                 </div>
-                <p id="chart-home-empty" class="small text-muted text-center d-none mb-0">Aucune entrée ou dépense enregistrée pour ce mois.</p>
             </div>
         </div>
 
@@ -118,8 +136,9 @@
                                         </td>
                                         <td class="text-end fw-semibold">{{ i.amount|floatformat:2 }} €</td>
                                         <td class="text-end">
+                                            {% url 'main_app:income_update' i.pk as income_update_url %}
                                             {% url 'main_app:income_delete' i.pk as income_delete_url %}
-                                            {% include "main_app/_delete_button.html" with action_url=income_delete_url confirm_message="Supprimer cette entrée ?" %}
+                                            {% include "main_app/_delete_button.html" with action_url=income_delete_url edit_url=income_update_url confirm_message="Supprimer cette entrée ?" %}
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -162,8 +181,9 @@
                                         <td>{{ e.frequency }}</td>
                                         <td class="text-end fw-semibold">{{ e.amount|floatformat:2 }} €</td>
                                         <td class="text-end">
+                                            {% url 'main_app:expense_update' e.pk as expense_update_url %}
                                             {% url 'main_app:expense_delete' e.pk as expense_delete_url %}
-                                            {% include "main_app/_delete_button.html" with action_url=expense_delete_url confirm_message="Supprimer cette dépense ?" %}
+                                            {% include "main_app/_delete_button.html" with action_url=expense_delete_url edit_url=expense_update_url confirm_message="Supprimer cette dépense ?" %}
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -191,84 +211,40 @@
         }
     }
 
-    function hexToRgba(hex, alpha) {
-        if (!hex) return 'rgba(108,117,125,' + alpha + ')';
-        var h = hex.replace('#', '').trim();
-        if (h.length === 3) {
-            h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-        }
-        var bigint = parseInt(h, 16);
-        var r = (bigint >> 16) & 255;
-        var g = (bigint >> 8) & 255;
-        var b = bigint & 255;
-        return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
-    }
-
-    function doughnutChart(canvasId, emptyId, categoriesId) {
+    function doughnutFromSlices(canvasId, emptyId, slices) {
         var canvas = document.getElementById(canvasId);
         var emptyEl = document.getElementById(emptyId);
         if (!canvas) return;
 
-        var cats = readData(categoriesId);
-        if (!cats.length) {
-            canvas.classList.add('d-none');
-            if (emptyEl) emptyEl.classList.remove('d-none');
-            return;
-        }
-
-        var incomeData = cats.map(function (d) { return d.income || 0; });
-        var expenseData = cats.map(function (d) { return d.expense || 0; });
-        var labels = cats.map(function (d) { return d.label; });
-        var colors = cats.map(function (d) { return d.color || '#6c757d'; });
-
-        var total = incomeData.reduce(function (a, b) { return a + b; }, 0) + expenseData.reduce(function (a, b) { return a + b; }, 0);
-        if (!total) {
+        slices = (slices || []).filter(function (d) { return d.amount > 0; });
+        if (!slices.length) {
             canvas.classList.add('d-none');
             if (emptyEl) emptyEl.classList.remove('d-none');
             return;
         }
         if (emptyEl) emptyEl.classList.add('d-none');
 
-        var ctx = canvas.getContext('2d');
-        var incomeColors = colors.map(function (c) { return hexToRgba(c, 0.45); });
-        var expenseColors = colors.map(function (c) { return hexToRgba(c, 0.88); });
-
-        new Chart(ctx, {
+        new Chart(canvas.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Revenus',
-                        data: incomeData,
-                        backgroundColor: incomeColors,
-                        borderColor: '#fffaf4',
-                        borderWidth: 2,
-                        radius: '75%',
-                        cutout: '45%'
-                    },
-                    {
-                        label: 'Dépenses',
-                        data: expenseData,
-                        backgroundColor: expenseColors,
-                        borderColor: '#fffaf4',
-                        borderWidth: 2,
-                        radius: '100%',
-                        cutout: '62%'
-                    }
-                ]
+                labels: slices.map(function (d) { return d.label; }),
+                datasets: [{
+                    data: slices.map(function (d) { return d.amount; }),
+                    backgroundColor: slices.map(function (d) { return d.color; }),
+                    borderColor: '#fffaf4',
+                    borderWidth: 3
+                }]
             },
             options: {
                 maintainAspectRatio: false,
+                cutout: '58%',
                 plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
+                    legend: { position: 'bottom' },
                     tooltip: {
                         callbacks: {
                             label: function (context) {
                                 var val = context.raw || 0;
-                                return context.dataset.label + ': ' + Number(val).toFixed(2) + ' €';
+                                return context.label + ' : ' + Number(val).toFixed(2) + ' €';
                             }
                         }
                     }
@@ -277,7 +253,13 @@
         });
     }
 
-    doughnutChart('chart-home-income-expense', 'chart-home-empty', 'home-chart-categories');
+    var overview = readData('home-chart-overview') || {};
+    doughnutFromSlices('chart-home-overview', 'chart-home-empty', [
+        { label: 'Salaire', amount: overview.salary || 0, color: '#7d9b76' },
+        { label: 'Dépenses', amount: overview.expense || 0, color: '#c45c3e' },
+        { label: 'Virements', amount: overview.transfers || 0, color: '#e8b86d' }
+    ]);
+    doughnutFromSlices('chart-home-planned', 'chart-home-planned-empty', readData('home-chart-planned'));
 })();
 </script>
 {% endblock %}

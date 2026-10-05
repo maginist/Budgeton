@@ -22,9 +22,10 @@
                 {% if accounts %}
                     <ul class="list-group list-group-flush">
                         {% for a in accounts %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <li class="list-group-item d-flex justify-content-between align-items-center gap-3">
                                 <span class="fw-medium">{{ a.name }}</span>
-                                <span class="small text-muted">Répartition des mouvements</span>
+                                {% url 'main_app:savings_account_update' a.pk as savings_account_update_url %}
+                                {% include "main_app/_delete_button.html" with edit_url=savings_account_update_url action_url="" %}
                             </li>
                         {% endfor %}
                     </ul>

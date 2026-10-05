@@ -1,6 +1,6 @@
 {% extends "main_app/base.html" %}
 
-{% block title %}Nouvelle dépense{% endblock %}
+{% block title %}{% if object %}Modifier la dépense{% else %}Nouvelle dépense{% endif %}{% endblock %}
 
 {% block content %}
 <div class="form-hero">
@@ -8,9 +8,9 @@
         <div class="col-lg-7 col-md-9">
             <div class="text-center hero-copy mb-4 px-3">
                 <span class="badge fw-semibold mb-3" style="background: #fff; color: #c45c3e;">
-                    Nouvelle dépense
+                    {% if object %}Modifier{% else %}Nouvelle dépense{% endif %}
                 </span>
-                <h1 class="h3 h2-md mb-2 fw-bold">Ajoute une dépense à ton budget</h1>
+                <h1 class="h3 h2-md mb-2 fw-bold">{% if object %}Modifier une dépense{% else %}Ajoute une dépense à ton budget{% endif %}</h1>
                 <p class="mb-0" style="color: #8a6e5d;">
                     Détaille ce que tu dépenses pour suivre précisément l’évolution de ton mois.
                 </p>
@@ -80,6 +80,9 @@
                                     {{ form.frequency.label }}
                                 </label>
                                 {{ form.frequency }}
+                                {% if form.frequency.help_text %}
+                                    <div class="form-text">{{ form.frequency.help_text }}</div>
+                                {% endif %}
                                 {% if form.frequency.errors %}
                                     <div class="invalid-feedback d-block">
                                         {{ form.frequency.errors|striptags }}
@@ -108,7 +111,7 @@
                             Annuler
                         </a>
                         <button type="submit" class="btn btn-primary">
-                            Enregistrer la dépense
+                            {% if object %}Enregistrer les modifications{% else %}Enregistrer la dépense{% endif %}
                         </button>
                     </div>
                 </div>

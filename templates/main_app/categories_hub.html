@@ -9,6 +9,32 @@
 {% block content %}
 {{ expense_chart_data|json_script:"expense-chart-data-cat" }}
 {{ income_chart_data|json_script:"income-chart-data-cat" }}
+{{ savings_chart_data|json_script:"savings-chart-data-cat" }}
+
+<div class="row g-3 align-items-start">
+    <aside class="col-lg-3">
+        <div class="card border-0 sticky-lg-top" style="top: 1rem;">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h6 mb-0">Catégories</h2>
+                    <a href="{% url 'main_app:category_create' %}" class="btn btn-sm btn-primary">+</a>
+                </div>
+                {% if all_categories %}
+                    <ul class="list-group list-group-flush">
+                        {% for cat in all_categories %}
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center gap-2">
+                                <span class="badge text-wrap text-start" style="background-color: {{ cat.color }}; color: #fff;">{{ cat.name }}</span>
+                                <a href="{% url 'main_app:category_update' cat.pk %}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="small mb-0" style="color: #8a6e5d;">Aucune catégorie pour l’instant.</p>
+                {% endif %}
+            </div>
+        </div>
+    </aside>
+    <div class="col-lg-9">
 
 <div class="page-hero">
     <div>
@@ -49,19 +75,26 @@
             <div class="card-body p-4">
                 <h3 class="h6 text-muted mb-3">Graphiques par catégorie</h3>
                 <div class="row g-4">
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
                         <h4 class="h6 text-muted mb-3">Dépenses</h4>
                         <div class="position-relative" style="max-width: 340px; margin: 0 auto; height: 260px;">
                             <canvas id="chart-expenses-cat" aria-label="Dépenses par catégorie"></canvas>
                         </div>
                         <p id="chart-expenses-cat-empty" class="small text-muted text-center d-none mb-0">Aucune dépense ce mois-ci.</p>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
                         <h4 class="h6 text-muted mb-3">Revenus</h4>
                         <div class="position-relative" style="max-width: 340px; margin: 0 auto; height: 260px;">
                             <canvas id="chart-incomes-cat" aria-label="Revenus par catégorie"></canvas>
                         </div>
                         <p id="chart-incomes-cat-empty" class="small text-muted text-center d-none mb-0">Aucune entrée enregistrée ce mois-ci.</p>
+                    </div>
+                    <div class="col-lg-4">
+                        <h4 class="h6 text-muted mb-3">Épargne</h4>
+                        <div class="position-relative" style="max-width: 340px; margin: 0 auto; height: 260px;">
+                            <canvas id="chart-savings-cat" aria-label="Épargne par catégorie"></canvas>
+                        </div>
+                        <p id="chart-savings-cat-empty" class="small text-muted text-center d-none mb-0">Aucun mouvement d’épargne ce mois-ci.</p>
                     </div>
                 </div>
             </div>
@@ -178,6 +211,8 @@
         </div>
     </div>
 </div>
+</div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -225,6 +260,7 @@
 
     doughnutChart('chart-expenses-cat', readData('expense-chart-data-cat'), 'chart-expenses-cat-empty');
     doughnutChart('chart-incomes-cat', readData('income-chart-data-cat'), 'chart-incomes-cat-empty');
+    doughnutChart('chart-savings-cat', readData('savings-chart-data-cat'), 'chart-savings-cat-empty');
 })();
 </script>
 {% endblock %}

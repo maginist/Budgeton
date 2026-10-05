@@ -213,6 +213,15 @@ footer {
     border-radius: 1.2rem;
 }
 
+.progress {
+    background-color: #f0e0d2;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+}
+
 @media (max-width: 991px) {
     .site-nav {
         border-radius: 1.5rem;

@@ -1,14 +1,14 @@
 {% extends "main_app/base.html" %}
 
-{% block title %}Nouveau revenu — Budgeton{% endblock %}
+{% block title %}{% if object %}Modifier le revenu{% else %}Nouveau revenu{% endif %} — Budgeton{% endblock %}
 
 {% block content %}
 <div class="form-hero">
     <div class="row justify-content-center">
         <div class="col-lg-7 col-md-9">
             <div class="text-center hero-copy mb-4 px-3">
-                <span class="badge fw-semibold mb-3" style="background: #fff; color: #7d9b76;">Nouveau revenu</span>
-                <h1 class="h3 fw-bold mb-2">Enregistrer une entrée d’argent</h1>
+                <span class="badge fw-semibold mb-3" style="background: #fff; color: #7d9b76;">{% if object %}Modifier{% else %}Nouveau revenu{% endif %}</span>
+                <h1 class="h3 fw-bold mb-2">{% if object %}Modifier une entrée d’argent{% else %}Enregistrer une entrée d’argent{% endif %}</h1>
                 <p class="mb-0" style="color: #8a6e5d;">Salaire, primes, remboursements…</p>
             </div>
 
@@ -52,7 +52,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center pt-4 mt-4 border-top">
                         <a href="{% url 'main_app:balance' %}" class="btn btn-outline-secondary">Annuler</a>
-                        <button type="submit" class="btn btn-success">Enregistrer</button>
+                        <button type="submit" class="btn btn-success">{% if object %}Enregistrer les modifications{% else %}Enregistrer{% endif %}</button>
                     </div>
                 </div>
             </form>

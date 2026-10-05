@@ -1,0 +1,106 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}Prévisions — Budgeton{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div class="text-center mb-4">
+        <span class="badge fw-semibold mb-2" style="background: #f6e4d4; color: #c45c3e;">Prévisions du mois</span>
+        <h1 class="h3 fw-bold mb-1">{{ dashboard_month|date:"F Y"|capfirst }}</h1>
+        <p class="small mb-0" style="color: #8a6e5d;">La prévision est le montant prévu pour une catégorie. Tu peux la modifier pour ce mois, ou aussi pour les mois suivants.</p>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-4">
+        <div class="month-chip">
+            <a class="btn btn-outline-secondary btn-sm" href="?year={{ prev_year }}&month={{ prev_month }}" aria-label="Mois précédent">←</a>
+            <div class="text-center px-1">
+                <div class="small" style="color: #8a6e5d;">Mois</div>
+                <div class="fw-bold">{{ dashboard_month|date:"m/Y" }}</div>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm" href="?year={{ next_year }}&month={{ next_month }}" aria-label="Mois suivant">→</a>
+        </div>
+        <form method="get" class="d-flex align-items-center gap-2">
+            <input type="hidden" name="month" value="{{ selected_month }}">
+            <label class="small mb-0" style="color: #8a6e5d;" for="id_year_select_plan">Année</label>
+            <select id="id_year_select_plan" name="year" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                {% for y in year_choices %}
+                    <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'main_app:planned_expense_create' %}?year={{ selected_year }}&month={{ selected_month }}" class="btn btn-primary">
+            + Ajouter une prévision
+        </a>
+    </div>
+
+    {% if total_planned %}
+        <div class="card border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                    <h2 class="h6 mb-0">Total du mois</h2>
+                    <span class="fw-bold {% if overall_over %}text-danger{% endif %}">{{ overall_percent|floatformat:0 }} %</span>
+                </div>
+                <div class="progress mb-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ overall_bar_width }}" style="height: 12px; border-radius: 999px;">
+                    <div class="progress-bar {% if overall_over %}bg-danger{% else %}bg-success{% endif %}" style="width: {{ overall_bar_width }}%;"></div>
+                </div>
+                <div class="small" style="color: #8a6e5d;">
+                    Réalisé {{ total_spent|floatformat:2 }} € / prévu {{ total_planned|floatformat:2 }} €
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if rows %}
+        <div class="row g-3">
+            {% for row in rows %}
+                <div class="col-md-6">
+                    <div class="card border-0 h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                                <span class="badge" style="background-color: {{ row.category.color }}; color: #fff;">{{ row.category.name }}</span>
+                                <span class="fw-bold {% if row.over %}text-danger{% endif %}">{{ row.percent|floatformat:0 }} %</span>
+                            </div>
+                            <div class="progress mb-3" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ row.bar_width }}" style="height: 10px; border-radius: 999px;">
+                                <div class="progress-bar {% if row.over %}bg-danger{% endif %}" style="{% if not row.over %}background-color: {{ row.category.color }}; {% endif %}width: {{ row.bar_width }}%;"></div>
+                            </div>
+                            <div class="small mb-1">
+                                Prévu : <strong>{{ row.amount|floatformat:2 }} €</strong>
+                                {% if row.customized %}
+                                    <span class="badge ms-1" style="background: #f6e4d4; color: #c45c3e;">Ajusté ce mois</span>
+                                {% endif %}
+                            </div>
+                            <div class="small mb-1">Réalisé : <strong>{{ row.spent|floatformat:2 }} €</strong></div>
+                            <div class="small mb-3">
+                                {% if row.over %}
+                                    Dépassement : <strong class="text-danger">{{ row.over_amount|floatformat:2 }} €</strong>
+                                {% else %}
+                                    Reste : <strong>{{ row.remaining|floatformat:2 }} €</strong>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex justify-content-end align-items-center gap-1 flex-wrap">
+                                {% if row.template %}
+                                    <a href="{% url 'main_app:planned_expense_month' row.template.pk %}?year={{ selected_year }}&month={{ selected_month }}" class="btn btn-sm btn-outline-secondary">Modifier la prévision</a>
+                                    {% url 'main_app:planned_expense_delete' row.template.pk as plan_delete_url %}
+                                    {% include "main_app/_delete_button.html" with action_url=plan_delete_url confirm_message="Supprimer cette prévision ?" %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card border-0">
+            <div class="card-body p-4 text-center" style="color: #8a6e5d;">
+                Aucune prévision pour ce mois.
+                <div class="mt-3">
+                    <a href="{% url 'main_app:planned_expense_create' %}?year={{ selected_year }}&month={{ selected_month }}" class="btn btn-primary">Créer la première</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

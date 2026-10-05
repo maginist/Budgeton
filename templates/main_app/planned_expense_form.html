@@ -1,0 +1,47 @@
+{% extends "main_app/base.html" %}
+
+{% block title %}{% if object %}Modifier la prévision{% else %}Nouvelle prévision{% endif %} — Budgeton{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0">
+            <div class="card-body p-4 p-md-5">
+                <h1 class="h4 fw-bold mb-2">
+                    {% if object and not is_template %}Ajustement du mois{% elif object %}Montant habituel{% else %}Ajouter au jeu habituel{% endif %}
+                </h1>
+                <p class="small mb-4" style="color: #8a6e5d;">
+                    {% if object and not is_template %}
+                        Ce montant ne change que {{ selected_month }}/{{ selected_year }}.
+                    {% else %}
+                        Ce montant est repris chaque mois. Tu pourras l’ajuster ensuite pour un seul mois.
+                    {% endif %}
+                </p>
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">Catégorie</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}<div class="invalid-feedback d-block">{{ form.category.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="{{ form.amount.id_for_label }}" class="form-label">Montant prévu</label>
+                        {{ form.amount }}
+                        {% if form.amount.help_text %}<div class="form-text">{{ form.amount.help_text }}</div>{% endif %}
+                        {% if form.amount.errors %}<div class="invalid-feedback d-block">{{ form.amount.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'main_app:planned_expenses' %}?year={{ request.GET.year|default:selected_year }}&month={{ request.GET.month|default:selected_month }}" class="btn btn-outline-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary">{% if object %}Enregistrer{% else %}Créer{% endif %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
